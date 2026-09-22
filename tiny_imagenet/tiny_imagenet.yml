@@ -1,0 +1,60 @@
+# Shared recipe (also supports --model qk_gsap): --model spiking_baseline / spiking_gsap / QKFormer / sdt_baseline / Spikformer; attention is hardcoded in gsap/spiking.py.
+model: spiking_baseline
+dataset: tiny_imagenet
+data_dir: ./data/tiny-imagenet-200
+train_split: train
+val_split: val
+num_classes: 200
+img_size: 64
+patch_size: 4  # Fixed tokenizer stride: 64 -> 16, NOT a configurable patch projection.
+depths: 4
+dim: 384
+T: 4
+num_heads: 12  # Spiking baseline head width 32; unused by GSAP; SDT / Spikformer use this; QK fixes 8 heads like CIFAR10.
+mlp_ratio: 4
+backend: cupy
+drop: 0.0
+drop_path: 0.0  # Existing CIFAR forward does not apply DropPath.
+
+# ImageNet normalization convention; not claimed to be measured Tiny statistics.
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
+crop_pct: 1.0
+scale: [0.6, 1.0]  # Moderate crops for small 64x64 objects.
+ratio: [0.75, 1.3333333333333333]
+hflip: 0.5
+vflip: 0.0
+color_jitter: 0.0
+interpolation: bicubic
+train_interpolation: bicubic
+aa: rand-m9-n1-mstd0.4-inc1
+mixup: 0.5
+cutmix: 0.5
+mixup_off_epoch: 0
+mixup_prob: 1.0
+mixup_mode: batch
+mixup_switch_prob: 0.5
+reprob: 0.25
+remode: const
+smoothing: 0.1
+
+batch_size: 64  # Per GPU; reduce if memory is insufficient.
+val_batch_size: 64
+lr: 5.0e-4
+lr_base_size: 256  # Effective LR = lr * batch_size * world_size / 256.
+min_lr: 1.0e-5
+warmup_lr: 1.0e-6
+opt: adamw
+opt_eps: 1.0e-8
+opt_betas: [0.9, 0.999]
+weight_decay: 0.05
+sched: cosine
+epochs: 300
+warmup_epochs: 20
+cooldown_epochs: 10  # timm 0.6.12: 300 scheduled + 10 cooldown epochs.
+amp: true
+workers: 8
+pin_mem: true
+seed: 42
+device: cuda:0
+output: ./runs
